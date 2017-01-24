@@ -10,6 +10,7 @@ class BasicApp extends App.AppBase {
       App.AppBase.initialize();
     }
 
+    // triggered when a user updates the settings in GCM
     function onSettingsChanged() {
       Ui.requestUpdate();
     }

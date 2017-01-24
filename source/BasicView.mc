@@ -16,9 +16,11 @@ class BasicView extends Ui.WatchFace {
 
     // globals
     var debug = false;
-    var timer1;
+
+    // timers - time between frames (approx 12fps @ 80ms)
     var timer_timeout = 80;
     var timer_steps = timer_timeout;
+    var timer1;
 
     // sensors / status
     var battery = 0;
@@ -182,7 +184,7 @@ class BasicView extends Ui.WatchFace {
       f_nyan_font = Ui.loadResource(Rez.Fonts.nyan_font_digits);
       f_nyan_font_alpha = Ui.loadResource(Rez.Fonts.nyan_font_alpha);
 
-      // load resources for smaller resolution devices
+      // load resources for larger resolution devices
       if (sq_size > 3) {
 
         b_nyan_head = Ui.loadResource(Rez.Drawables.nyan_head_4);
@@ -196,6 +198,7 @@ class BasicView extends Ui.WatchFace {
         b_nyan_tail_5 = Ui.loadResource(Rez.Drawables.nyan_tail_4_5);
         b_nyan_tail_6 = Ui.loadResource(Rez.Drawables.nyan_tail_4_6);
 
+        // an array of all the animation frames for nyan
         b_nyan_tail = [b_nyan_tail_1,b_nyan_tail_2,b_nyan_tail_3,b_nyan_tail_4,b_nyan_tail_5,b_nyan_tail_6];
 
         b_rainbow = Ui.loadResource(Rez.Drawables.rainbow_4);
@@ -208,11 +211,12 @@ class BasicView extends Ui.WatchFace {
         b_star_5 = Ui.loadResource(Rez.Drawables.star_4_5);
         b_star_6 = Ui.loadResource(Rez.Drawables.star_4_6);
 
+        // an array of all the animation frames for the star
         b_star = [b_star_1,b_star_2,b_star_3,b_star_4,b_star_5,b_star_6];
 
       } else {
 
-        // load the larger pixel resources here
+        // load the smaller pixel resources here
         b_nyan_head = Ui.loadResource(Rez.Drawables.nyan_head);
         b_nyan_body = Ui.loadResource(Rez.Drawables.nyan_body);
         b_nyan_legs= Ui.loadResource(Rez.Drawables.nyan_legs);
@@ -347,29 +351,34 @@ class BasicView extends Ui.WatchFace {
       // --------------------
       var rainbow_sprite = null;
 
+      // if bluetooth not available, then display the alternate rainbow
       if (bluetooth) {
         rainbow_sprite = b_rainbow;
       } else {
         rainbow_sprite = b_rainbow_bt;
       }
 
+      // each part of the rainbow is the same bitmap, x4 and shifted in different x/y locations
       dc.drawBitmap(xp + (0*sq_size), yp + (3*sq_size) + (sq_size * wave[ani_step%12]), rainbow_sprite);
       dc.drawBitmap(xp + (-7*sq_size), yp + (3*sq_size) + (sq_size * wave[(ani_step+1)%12]), rainbow_sprite);
       dc.drawBitmap(xp + (-14*sq_size), yp + (3*sq_size) + (sq_size * wave[(ani_step+2)%12]), rainbow_sprite);
       dc.drawBitmap(xp + (-21*sq_size), yp + (3*sq_size) + (sq_size * wave[(ani_step+3)%12]), rainbow_sprite);
 
 
+
       // draw stars
       // --------------------
+      // if we're at the start of the animation, position the star 1/5 of the screen height
       if (ani_step % 12 == 0) {
         xp_star = dw - (sprite_star_height*sq_size);
-        yp_star = (dh/5) - (sprite_star_height*sq_size/2) - y_offset_nyan; // position star 1/5 height
+        yp_star = (dh/5) - (sprite_star_height*sq_size/2) - y_offset_nyan;
+        // if we're half way thru, position the star 2/5 of the screen height
       } else if (ani_step % 6 == 0) {
         xp_star = dw - (sprite_star_height*sq_size);
-        yp_star = (dh*2/5) - (sprite_star_height*sq_size/2) - y_offset_nyan; // position star 2/5 height
+        yp_star = (dh*2/5) - (sprite_star_height*sq_size/2) - y_offset_nyan;
       }
 
-      // move stars
+      // move and animate stars
       var star_direction = -8*sq_size;
       dc.drawBitmap(xp_star + (star_direction * (ani_step%6)), yp_star, b_star[ani_step%6]);
 
@@ -380,7 +389,7 @@ class BasicView extends Ui.WatchFace {
       yp = (dh/2) - (ph/2) - y_offset_nyan + (sq_size * wave[ani_step%12]);
       xp = (dw-pw)/2 + (7*sq_size);
 
-      // each part of the nyan cat is animated and draw independently
+      // each part of the nyan cat is animated and drawn independently
       dc.drawBitmap(xp + (-3*sq_size) + (nyan_legs_x[ani_step%12]*sq_size), yp + (15*sq_size) + (nyan_legs_y[ani_step%12]*sq_size), b_nyan_legs);
       dc.drawBitmap(xp, yp + (nyan_body_y[ani_step%12]*sq_size), b_nyan_body);
       dc.drawBitmap(xp + (11*sq_size) + (nyan_head_x[ani_step%12]*sq_size), yp + (4*sq_size) + (nyan_head_y[ani_step%12]*sq_size), b_nyan_head);
@@ -429,7 +438,7 @@ class BasicView extends Ui.WatchFace {
     }
 
     // this is our animation loop callback
-    function callback1() {
+    function callback_animate() {
 
       // redraw the screen
       Ui.requestUpdate();
@@ -437,7 +446,7 @@ class BasicView extends Ui.WatchFace {
       // timer not greater than 500ms? then let's start the timer again
       if (timer_steps < 500) {
         timer1 = new Timer.Timer();
-        timer1.start(method(:callback1), timer_steps, false );
+        timer1.start(method(:callback_animate), timer_steps, false );
       } else {
         // timer exists? stop it
         if (timer1) {
@@ -453,7 +462,7 @@ class BasicView extends Ui.WatchFace {
 
       // let's start our animation loop
       timer1 = new Timer.Timer();
-      timer1.start(method(:callback1), timer_steps, false );
+      timer1.start(method(:callback_animate), timer_steps, false );
 
     }
 
@@ -465,6 +474,7 @@ class BasicView extends Ui.WatchFace {
         timer1.stop();
       }
 
+      // reset the timer steps counter to the original timeout value
       timer_steps = timer_timeout;
 
 
