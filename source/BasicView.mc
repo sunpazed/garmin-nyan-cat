@@ -286,6 +286,7 @@ class BasicView extends Ui.WatchFace {
       var deviceSettings = Sys.getDeviceSettings();
       bluetooth = deviceSettings.phoneConnected;
 
+
       // 12-hour support
       if (hour > 12 || hour == 0) {
           if (!deviceSettings.is24Hour)
@@ -301,12 +302,14 @@ class BasicView extends Ui.WatchFace {
               }
       }
 
+
       // add padding to units if required
       if( minute < 10 ) {
           minute = "0" + minute;
       }
 
-      if( hour < 10 && set_leading_zero) {
+      // add leading zero for 24hr settings
+      if( hour < 10 && deviceSettings.is24Hour) {
           hour = "0" + hour;
       }
 
