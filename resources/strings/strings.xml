@@ -1,3 +1,19 @@
 <strings>
   <string id="AppName">Nyan Cat</string>
+
+  <string id="FieldTitle">Field</string>
+  <string id="FieldPrompt">Select the field to be displayed</string>
+
+  <string id="FIELD_DDMM">DD / MM</string>
+  <string id="FIELD_MMDD">MM / DD</string>
+  <string id="FIELD_DAYDD">Day + DD</string>
+  <string id="FIELD_DDMONTH">DD + Month</string>
+  <string id="FIELD_MONTH">Month</string>
+  <string id="FIELD_DAY">Day</string>
+  <string id="FIELD_STEPS">Steps</string>
+  <string id="FIELD_DISTANCE">Distance</string>
+  <string id="FIELD_STEPPROG">Step % Progress</string>
+  <string id="FIELD_GOAL">Steps Remaining</string>
+  <string id="FIELD_BATTERY">Battery %</string>
+
 </strings>

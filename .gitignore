@@ -13,3 +13,6 @@ old
 build.sh
 release.sh
 *.prg
+*.iq
+*.debug.xml
+nyan-settings.json

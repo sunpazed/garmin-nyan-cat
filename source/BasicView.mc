@@ -12,6 +12,22 @@ enum {
   SCREEN_SHAPE_RECT = 0x000003
 }
 
+enum {
+  FIELD_DDMM     = 0,
+  FIELD_MMDD     = 1,
+  FIELD_DAYDD    = 2,
+  FIELD_DDMONTH  = 3,
+  FIELD_MONTH    = 4,
+  FIELD_DAY      = 5,
+  FIELD_STEPS    = 6,
+  FIELD_DISTANCE = 7,
+  FIELD_STEPPROG = 8,
+  FIELD_GOAL     = 9,
+  FIELD_BATTERY  = 10,
+  FIELD_BT       = 11
+}
+
+
 class BasicView extends Ui.WatchFace {
 
     // globals
@@ -54,6 +70,12 @@ class BasicView extends Ui.WatchFace {
 
     // settings
     var set_leading_zero = false;
+    var set_field = 2;
+    var goal = 0;
+    var steps = 0;
+    var stepProgress = 0;
+    var distance = 0;
+    var is_metric = true;
 
     // fonts
     var f_nyan_font = null;
@@ -103,6 +125,77 @@ class BasicView extends Ui.WatchFace {
 
     // default size of a pixel
     var sq_size = 4;
+
+
+    // helper function to retrieve the field type to display
+    function getField(type){
+
+      if (type == FIELD_DDMM) {
+        return day.toString() + "/" +  month.toString();
+      }
+
+      if (type == FIELD_MMDD) {
+        return month.toString() + "/" +  day.toString();
+      }
+
+      if (type == FIELD_DAY) {
+        return day_of_week.toUpper().substring(0,3);
+      }
+
+      if (type == FIELD_DAYDD) {
+        return day_of_week.toUpper().substring(0,3) +  " " + day.toString();
+      }
+
+      if (type == FIELD_DDMONTH) {
+        return day.toString() + " " + month_str.toUpper().substring(0,3);
+      }
+
+      if (type == FIELD_MONTH) {
+        return month_str.toUpper().substring(0,3);
+      }
+
+      if (type == FIELD_STEPS) {
+        return steps.toString();
+      }
+
+      if (type == FIELD_GOAL) {
+        var this_steps = goal - steps;
+        if ( this_steps > 0) {
+          return (this_steps).toString();
+        } else {
+          return "+"+(steps - goal).toString();
+        }
+      }
+
+      if (type == FIELD_STEPPROG) {
+        return stepProgress.toString()+"%";
+      }
+
+      if (type == FIELD_DISTANCE) {
+        var d_units = (is_metric) ? "KM" : "MI";
+        return distance.format("%.1f") + d_units;
+      }
+
+      if (type == FIELD_BATTERY) {
+        return battery.toString()+"%";
+      }
+
+      return "";
+
+    }
+
+    // helper function to retrieve the property for any numeric setting
+    function readKeyInt(myApp,key,thisDefault) {
+      var value = myApp.getProperty(key);
+              if(value == null || !(value instanceof Number)) {
+              if(value != null) {
+                  value = value.toNumber();
+              } else {
+                      value = thisDefault;
+              }
+      }
+      return value;
+    }
 
 
     function initialize() {
@@ -264,6 +357,8 @@ class BasicView extends Ui.WatchFace {
     //! Update the view
     function onUpdate(dc) {
 
+      // grab the settings to display the correct field
+      set_field = readKeyInt(App.getApp(),"field",2);
 
       // grab time objects
       var clockTime = Sys.getClockTime();
@@ -286,6 +381,29 @@ class BasicView extends Ui.WatchFace {
       var deviceSettings = Sys.getDeviceSettings();
       bluetooth = deviceSettings.phoneConnected;
 
+      // step progress
+      var thisActivity = ActivityMonitor.getInfo();
+
+      // turn debug values on
+      if (debug) {
+        goal = 12000;
+        steps = Math.rand() % goal;
+      } else {
+        steps = thisActivity.steps;
+        goal = thisActivity.stepGoal;
+      }
+
+      // define our current step progress in terms of % completed
+      stepProgress = (100*(steps.toFloat()/goal.toFloat())).toNumber();
+      var cm_distance = thisActivity.distance;
+
+      if (deviceSettings.distanceUnits == Sys.UNIT_METRIC) {
+        distance = (cm_distance).toFloat() / 100000;
+        is_metric = true;
+      } else {
+        distance = (cm_distance).toFloat() / 160934;
+        is_metric = false;
+      }
 
       // 12-hour support
       if (hour > 12 || hour == 0) {
@@ -399,13 +517,15 @@ class BasicView extends Ui.WatchFace {
       dc.drawBitmap(xp + (-7*sq_size), yp + (7*sq_size), b_nyan_tail[ani_step%6]);
 
 
-      // draw date
+      // draw date/field
       // --------------------
+      var this_field = getField(set_field);
+
       dc.setColor(Gfx.COLOR_BLACK, Gfx.COLOR_TRANSPARENT);
-      dc.drawText(dw/2 + 2, dh - (s_offset_time) + (s_offset_date) + 2, f_nyan_font_alpha, day_of_week.toUpper().substring(0,3) + " " + day.toString(), Gfx.TEXT_JUSTIFY_CENTER);
+      dc.drawText(dw/2 + 2, dh - (s_offset_time) + (s_offset_date) + 2, f_nyan_font_alpha, this_field, Gfx.TEXT_JUSTIFY_CENTER);
 
       dc.setColor(Gfx.COLOR_WHITE, Gfx.COLOR_TRANSPARENT);
-      dc.drawText(dw/2, dh - (s_offset_time) + (s_offset_date), f_nyan_font_alpha, day_of_week.toUpper().substring(0,3) + " " + day.toString(), Gfx.TEXT_JUSTIFY_CENTER);
+      dc.drawText(dw/2, dh - (s_offset_time) + (s_offset_date), f_nyan_font_alpha, this_field, Gfx.TEXT_JUSTIFY_CENTER);
 
 
       // draw time

@@ -1,9 +1,25 @@
 <resources>
 
 <properties>
+    <property id="field" type="number">2</property>
 </properties>
 
 <settings>
+  <setting propertyKey="@Properties.field" title="@Strings.FieldTitle" prompt="@Strings.FieldPrompt">
+    <settingConfig type="list">
+        <listEntry value="0">@Strings.FIELD_DDMM</listEntry>
+        <listEntry value="1">@Strings.FIELD_MMDD</listEntry>
+        <listEntry value="2">@Strings.FIELD_DAYDD</listEntry>
+        <listEntry value="3">@Strings.FIELD_DDMONTH</listEntry>
+        <listEntry value="4">@Strings.FIELD_MONTH</listEntry>
+        <listEntry value="5">@Strings.FIELD_DAY</listEntry>
+        <listEntry value="6">@Strings.FIELD_STEPS</listEntry>
+        <listEntry value="7">@Strings.FIELD_DISTANCE</listEntry>
+        <listEntry value="8">@Strings.FIELD_STEPPROG</listEntry>
+        <listEntry value="9">@Strings.FIELD_GOAL</listEntry>
+        <listEntry value="10">@Strings.FIELD_BATTERY</listEntry>
+    </settingConfig>
+  </setting>
 </settings>
 
 </resources>
