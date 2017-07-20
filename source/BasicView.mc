@@ -37,6 +37,7 @@ class BasicView extends Ui.WatchFace {
     var timer_timeout = 80;
     var timer_steps = timer_timeout;
     var timer1;
+    var has1hz = false;
 
     // sensors / status
     var battery = 0;
@@ -104,6 +105,7 @@ class BasicView extends Ui.WatchFace {
 
     // animation settings
     var ani_step = 0;
+    var is_animating = false;
     var num_of_frames = 12;
     var wave = [1,1,2,2,3,2,1,1,2,2,3,2];
     var nyan_head_x = [0,1,1,1,0,0,0,1,1,1,0,0];
@@ -116,8 +118,12 @@ class BasicView extends Ui.WatchFace {
     const sprite_star_height = 9;
     const sprite_star_width = 9;
     const num_of_frames_star = 6;
+    var actual_sprite_star_height = 0;
+    var actual_sprite_star_width = 0;
     var xp_star = 0;
     var yp_star = 0;
+    var xp_star_prev = 0;
+    var yp_star_prev = 0;
 
     // nyan details
     const sprite_height = 34;
@@ -125,6 +131,21 @@ class BasicView extends Ui.WatchFace {
 
     // default size of a pixel
     var sq_size = 4;
+
+    // globals to pre-calc and speed up onPartialUpdate
+    var sq_size_49 = 49*sq_size;
+    var sq_size_23 = 23*sq_size;
+    var sq_size_21 = 21*sq_size;
+    var sq_size_15 = 15*sq_size;
+    var sq_size_14 = 14*sq_size;
+    var sq_size_11 = 11*sq_size;
+    var sq_size_7 = 7*sq_size;
+    var sq_size_4 = 4*sq_size;
+    var sq_size_3 = 3*sq_size;
+    var pw = 0;
+    var ph = 0;
+    var dh_fifth = 0;
+    var dh_two_fifths = 0;
 
 
     // helper function to retrieve the field type to display
@@ -200,6 +221,11 @@ class BasicView extends Ui.WatchFace {
 
     function initialize() {
      Ui.WatchFace.initialize();
+
+     if( Toybox.WatchUi.WatchFace has :onPartialUpdate ) {
+       has1hz = true;
+     }
+
     }
 
 
@@ -238,6 +264,26 @@ class BasicView extends Ui.WatchFace {
       if (canvas_rect || canvas_tall) {
         sq_size = 3;
       }
+
+      // pre-calc a few constants to improve performance with rendering in onPartialUpdate()
+      sq_size_49 = 49*sq_size;
+      sq_size_23 = 23*sq_size;
+      sq_size_21 = 21*sq_size;
+      sq_size_15 = 15*sq_size;
+      sq_size_14 = 14*sq_size;
+      sq_size_11 = 11*sq_size;
+      sq_size_7 = 7*sq_size;
+      sq_size_4 = 4*sq_size;
+      sq_size_3 = 3*sq_size;
+      dh_fifth = (canvas_h/5);
+      dh_two_fifths = (canvas_h*2/5);
+      actual_sprite_star_height = sprite_star_height*sq_size;
+      actual_sprite_star_width = sprite_star_width*sq_size;
+
+      // size of nyan on screen
+      pw = sq_size*sprite_height;
+      ph = sq_size*sprite_width;
+
 
       // set offsets based on screen type
       // positioning for different screen layouts
@@ -440,17 +486,20 @@ class BasicView extends Ui.WatchFace {
       }
 
 
+      // clear the screen clips and set BG
+      if (has1hz) {
+        dc.clearClip();
+      }
+
       // clear the screen
       dc.setColor(Gfx.COLOR_DK_BLUE, Gfx.COLOR_DK_BLUE);
+
+      // do we need to clear the screen?
       dc.clear();
 
       // w,h of canvas
-      var dw = dc.getWidth();
-      var dh = dc.getHeight();
-
-      // size of nyan on screen
-      var pw = sq_size*sprite_height;
-      var ph = sq_size*sprite_width;
+      var dw = canvas_w;
+      var dh = canvas_h;
 
       var yp = (dh/2)-(ph/2);
       var xp = (dw-pw)/2;
@@ -464,57 +513,9 @@ class BasicView extends Ui.WatchFace {
         ani_step = 0;
       }
 
-      // position of nyan + rainbow
-      yp = yp - sq_size - y_offset_nyan;
-
-
-      // draw rainbow
+      // draw the nyan!
       // --------------------
-      var rainbow_sprite = null;
-
-      // if bluetooth not available, then display the alternate rainbow
-      if (bluetooth) {
-        rainbow_sprite = b_rainbow;
-      } else {
-        rainbow_sprite = b_rainbow_bt;
-      }
-
-      // each part of the rainbow is the same bitmap, x4 and shifted in different x/y locations
-      dc.drawBitmap(xp + (0*sq_size), yp + (3*sq_size) + (sq_size * wave[ani_step%12]), rainbow_sprite);
-      dc.drawBitmap(xp + (-7*sq_size), yp + (3*sq_size) + (sq_size * wave[(ani_step+1)%12]), rainbow_sprite);
-      dc.drawBitmap(xp + (-14*sq_size), yp + (3*sq_size) + (sq_size * wave[(ani_step+2)%12]), rainbow_sprite);
-      dc.drawBitmap(xp + (-21*sq_size), yp + (3*sq_size) + (sq_size * wave[(ani_step+3)%12]), rainbow_sprite);
-
-
-
-      // draw stars
-      // --------------------
-      // if we're at the start of the animation, position the star 1/5 of the screen height
-      if (ani_step % 12 == 0) {
-        xp_star = dw - (sprite_star_height*sq_size);
-        yp_star = (dh/5) - (sprite_star_height*sq_size/2) - y_offset_nyan;
-        // if we're half way thru, position the star 2/5 of the screen height
-      } else if (ani_step % 6 == 0) {
-        xp_star = dw - (sprite_star_height*sq_size);
-        yp_star = (dh*2/5) - (sprite_star_height*sq_size/2) - y_offset_nyan;
-      }
-
-      // move and animate stars
-      var star_direction = -8*sq_size;
-      dc.drawBitmap(xp_star + (star_direction * (ani_step%6)), yp_star, b_star[ani_step%6]);
-
-
-
-      // draw nyan cat
-      // --------------------
-      yp = (dh/2) - (ph/2) - y_offset_nyan + (sq_size * wave[ani_step%12]);
-      xp = (dw-pw)/2 + (7*sq_size);
-
-      // each part of the nyan cat is animated and drawn independently
-      dc.drawBitmap(xp + (-3*sq_size) + (nyan_legs_x[ani_step%12]*sq_size), yp + (15*sq_size) + (nyan_legs_y[ani_step%12]*sq_size), b_nyan_legs);
-      dc.drawBitmap(xp, yp + (nyan_body_y[ani_step%12]*sq_size), b_nyan_body);
-      dc.drawBitmap(xp + (11*sq_size) + (nyan_head_x[ani_step%12]*sq_size), yp + (4*sq_size) + (nyan_head_y[ani_step%12]*sq_size), b_nyan_head);
-      dc.drawBitmap(xp + (-7*sq_size), yp + (7*sq_size), b_nyan_tail[ani_step%6]);
+      drawNyan(dc,false);
 
 
       // draw date/field
@@ -547,12 +548,122 @@ class BasicView extends Ui.WatchFace {
         dc.drawText(s_xoffset_batt, s_yoffset_batt, f_nyan_font_alpha, "@", Gfx.TEXT_JUSTIFY_CENTER);
       }
 
-      // increase animation counter
-      ani_step++;
-
-
 
     }
+
+    // here's the onPartialUpdate() code for 1hz
+    // --------------------
+    function onPartialUpdate(dc) {
+
+      if (!is_animating) {
+        drawNyan(dc,true);
+      }
+
+    }
+
+    // our drawNyan() function
+    // --------------------
+    // dc - we pass through the drawing context, and
+    // do1hz - whether we should run a "partial" update (false = render everything, true = render with setClip)
+    function drawNyan(dc,do1hz) {
+
+      // w,h of canvas
+      var dw = canvas_w;
+      var dh = canvas_h;
+
+      var yp = (dh/2)-(ph/2);
+      var xp = (dw-pw)/2;
+
+      // let's pre-calc the modulus for our animation steps, this improves performance by 0.5ms :)
+      var step = ani_step%12;
+      var step_half = ani_step%6;
+
+      // position of nyan + rainbow
+      yp = yp - sq_size - y_offset_nyan;
+
+
+      // if we're in 1hz mode, clear only the sections of the dc that we will re-draw
+      // --------------------
+
+      // let's reset the colour to our background colour
+      dc.setColor(Gfx.COLOR_DK_BLUE, Gfx.COLOR_DK_BLUE);
+
+      // let's clip and clear the pervious star rendered to the dc
+      if (do1hz) {
+        dc.setClip(xp_star_prev, yp_star_prev, actual_sprite_star_width, actual_sprite_star_height);
+        dc.clear();
+      }
+
+      // let's clip and clear the previous nyan, and rainbow rendered to the dc
+      if (do1hz) {
+        dc.setClip(xp + (-sq_size_14), yp - (sq_size) + (sq_size * wave[step]),49*sq_size,23*sq_size);
+        dc.clear();
+      }
+
+      // draw rainbow
+      // --------------------
+      var rainbow_sprite = null;
+
+      // if bluetooth not available, then display the alternate rainbow
+      if (bluetooth) {
+        rainbow_sprite = b_rainbow;
+      } else {
+        rainbow_sprite = b_rainbow_bt;
+      }
+
+      // small pre-calc, saves 0.2ms :)
+      var yp_rainbow = yp + (sq_size_3);
+
+      // each part of the rainbow is the same bitmap, x4 and shifted in different x/y locations
+      dc.drawBitmap(xp + (0), yp_rainbow + (sq_size * wave[step]), rainbow_sprite);
+      dc.drawBitmap(xp + (-sq_size_7), yp_rainbow + (sq_size * wave[(ani_step+1)%12]), rainbow_sprite);
+      dc.drawBitmap(xp + (-sq_size_14), yp_rainbow + (sq_size * wave[(ani_step+2)%12]), rainbow_sprite);
+      dc.drawBitmap(xp + (-sq_size_21), yp_rainbow + (sq_size * wave[(ani_step+3)%12]), rainbow_sprite);
+
+
+      // draw nyan cat
+      // --------------------
+      yp = (dh/2) - (ph/2) - y_offset_nyan + (sq_size * wave[step]);
+      xp = (dw-pw)/2 + (sq_size_7);
+
+      // each part of the nyan cat is animated and drawn independently
+      dc.drawBitmap(xp + (-sq_size_3) + (nyan_legs_x[step]*sq_size), yp + (sq_size_15) + (nyan_legs_y[step]*sq_size), b_nyan_legs);
+      dc.drawBitmap(xp, yp + (nyan_body_y[step]*sq_size), b_nyan_body);
+      dc.drawBitmap(xp + (sq_size_11) + (nyan_head_x[step]*sq_size), yp + (sq_size_4) + (nyan_head_y[step]*sq_size), b_nyan_head);
+      dc.drawBitmap(xp + (-sq_size_7), yp + (sq_size_7), b_nyan_tail[step_half]);
+
+      // draw stars
+      // --------------------
+      // if we're at the start of the animation, position the star 1/5 of the screen height
+      if (step == 0) {
+        xp_star = dw - (actual_sprite_star_height);
+        yp_star = dh_fifth - (actual_sprite_star_height/2) - y_offset_nyan;
+        // if we're half way thru, position the star 2/5 of the screen height
+      } else if (step_half == 0) {
+        xp_star = dw - (actual_sprite_star_height);
+        yp_star = dh_two_fifths - (actual_sprite_star_height/2) - y_offset_nyan;
+      }
+
+      // move and animate stars
+      var star_direction = -sq_size_4 - sq_size_4;
+
+      // let's save the current position of the star. we'll use this in the next re-draw to clear the dc
+      xp_star_prev = xp_star + (star_direction * (step_half));
+      yp_star_prev = yp_star;
+
+      // ok, let's define the clip for where the star is going to be drawn on the dc
+      if (do1hz) {
+        dc.setClip(xp_star_prev, yp_star_prev, actual_sprite_star_width, actual_sprite_star_height);
+      }
+
+      // draw the star
+      dc.drawBitmap(xp_star_prev, yp_star_prev, b_star[step_half]);
+
+      // almost done, increase animation counter!
+      ani_step++;
+
+    }
+
 
     //! Called when this View is removed from the screen. Save the
     //! state of this View here. This includes freeing resources from
@@ -584,6 +695,9 @@ class BasicView extends Ui.WatchFace {
     function onExitSleep() {
 
       // let's start our animation loop
+      is_animating = true;
+
+      // let's start our animation loop
       timer1 = new Timer.Timer();
       timer1.start(method(:callback_animate), timer_steps, false );
 
@@ -591,6 +705,10 @@ class BasicView extends Ui.WatchFace {
 
     //! Terminate any active timers and prepare for slow updates.
     function onEnterSleep() {
+
+      // let's stop our animation loop
+      is_animating = false;
+      Ui.requestUpdate();
 
       // bye bye timer
       if (timer1) {
@@ -604,3 +722,20 @@ class BasicView extends Ui.WatchFace {
     }
 
 }
+
+
+// This is Jim's code here to debug the 1hz power budget... commented this out before deploying to a watch
+/*
+class PartialDelegate extends Ui.WatchFaceDelegate
+{
+
+	function initialize() {
+		WatchFaceDelegate.initialize();
+	}
+
+    function onPowerBudgetExceeded(powerInfo) {
+        Sys.println( "Average execution time: " + powerInfo.executionTimeAverage );
+        Sys.println( "Allowed execution time: " + powerInfo.executionTimeLimit );
+    }
+}
+*/

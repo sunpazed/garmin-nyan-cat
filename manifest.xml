@@ -2,10 +2,6 @@
     <iq:application entry="BasicApp" id="DED18A8D43174551AD1B182E34969C21" launcherIcon="@Drawables.LauncherIcon" name="@Strings.AppName" type="watchface" minSdkVersion="1.2.1">
 
         <iq:products>
-          <iq:product id="square_watch"/>
-          <iq:product id="tall_watch"/>
-          <iq:product id="round_watch"/>
-          <iq:product id="semi_round_watch"/>
           <iq:product id="epix"/>
           <iq:product id="fr630"/>
           <iq:product id="fr235"/>
@@ -22,6 +18,7 @@
           <iq:product id="fenix5s"/>
           <iq:product id="fenix5x"/>
           <iq:product id="fr935"/>
+          <iq:product id="approachs60"/>
         </iq:products>
 
         <iq:permissions>

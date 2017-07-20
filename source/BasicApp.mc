@@ -25,7 +25,18 @@ class BasicApp extends App.AppBase {
 
     //! Return the initial view of your application here
     function getInitialView() {
-        return [ new BasicView() ];
+
+    // This is Jim's code here to debug the 1hz power budget... commented this out before deploying to a watch
+    /*
+		if( Toybox.WatchUi.WatchFace has :onPartialUpdate ) {
+        	return [ new BasicView(), new PartialDelegate()  ];
+        } else {
+        	return [ new BasicView() ];
+        }
+    */
+
+    return [ new BasicView() ];
+
     }
 
 }
