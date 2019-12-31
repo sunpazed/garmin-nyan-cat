@@ -15,4 +15,4 @@ release.sh
 *.prg
 *.iq
 *.debug.xml
-nyan-settings.json
+*-settings.json
