@@ -300,17 +300,45 @@ class BasicView extends Ui.WatchFace {
         s_xoffset_batt = canvas_w - 20;
       }
       if (canvas_circ) {
-        if (canvas_r240) {
-          y_offset_nyan = 30;
-          s_offset_time = 95;
-          s_yoffset_batt = 14;
-          s_xoffset_batt = canvas_w /2;
-        } else {
-          y_offset_nyan = 30;
-          s_offset_time = 86;
-          s_yoffset_batt = 8;
-          s_xoffset_batt = canvas_w /2;
+
+        switch(canvas_w) {
+
+          case 280:
+            y_offset_nyan = 40;
+            s_offset_time = 115;
+            s_yoffset_batt = 25;
+            s_xoffset_batt = canvas_w /2;
+          break;
+
+          case 260:
+            y_offset_nyan = 40;
+            s_offset_time = 105;
+            s_yoffset_batt = 18;
+            s_xoffset_batt = canvas_w /2;
+          break;
+
+          case 240:
+            y_offset_nyan = 30;
+            s_offset_time = 95;
+            s_yoffset_batt = 14;
+            s_xoffset_batt = canvas_w /2;
+          break;
+
+          case 218:
+            y_offset_nyan = 30;
+            s_offset_time = 86;
+            s_yoffset_batt = 8;
+            s_xoffset_batt = canvas_w /2;
+          break;
+
+          default:
+            y_offset_nyan = 30;
+            s_offset_time = 86;
+            s_yoffset_batt = 8;
+            s_xoffset_batt = canvas_w /2;
+
         }
+
       }
       if (canvas_semicirc) {
         y_offset_nyan = 32;
@@ -693,6 +721,10 @@ class BasicView extends Ui.WatchFace {
 
     //! The user has just looked at their watch. Timers and animations may be started here.
     function onExitSleep() {
+
+      if (timer1) {
+        timer1.stop();
+      }
 
       // let's start our animation loop
       is_animating = true;
