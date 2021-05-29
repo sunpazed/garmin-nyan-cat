@@ -38,6 +38,8 @@ class BasicView extends Ui.WatchFace {
     var timer_steps = timer_timeout;
     var timer1;
     var has1hz = false;
+    var hasOLED = false;
+    var hasOverride = false;
 
     // sensors / status
     var battery = 0;
@@ -105,7 +107,7 @@ class BasicView extends Ui.WatchFace {
 
     // animation settings
     var ani_step = 0;
-    var is_animating = false;
+    var is_animating = true;
     var num_of_frames = 12;
     var wave = [1,1,2,2,3,2,1,1,2,2,3,2];
     var nyan_head_x = [0,1,1,1,0,0,0,1,1,1,0,0];
@@ -260,48 +262,81 @@ class BasicView extends Ui.WatchFace {
       canvas_semicirc = (canvas_shape == SCREEN_SHAPE_SEMICIRC) ? true : false;
       canvas_r240 =  (canvas_w == 240 && canvas_w == 240) ? true : false;
 
+      if( System.DeviceSettings has :requiresBurnInProtection ) {
+        if (deviceSettings.requiresBurnInProtection) {
+          hasOLED = true;
+        }
+      }
+
       // check the orientation, set the pixel size smaller
       if (canvas_rect || canvas_tall) {
         sq_size = 3;
       }
 
-      // pre-calc a few constants to improve performance with rendering in onPartialUpdate()
-      sq_size_49 = 49*sq_size;
-      sq_size_23 = 23*sq_size;
-      sq_size_21 = 21*sq_size;
-      sq_size_15 = 15*sq_size;
-      sq_size_14 = 14*sq_size;
-      sq_size_11 = 11*sq_size;
-      sq_size_7 = 7*sq_size;
-      sq_size_4 = 4*sq_size;
-      sq_size_3 = 3*sq_size;
-      dh_fifth = (canvas_h/5);
-      dh_two_fifths = (canvas_h*2/5);
-      actual_sprite_star_height = sprite_star_height*sq_size;
-      actual_sprite_star_width = sprite_star_width*sq_size;
-
-      // size of nyan on screen
-      pw = sq_size*sprite_height;
-      ph = sq_size*sprite_width;
-
-
       // set offsets based on screen type
       // positioning for different screen layouts
+
       if (canvas_tall) {
+
         y_offset_nyan = 30;
         s_offset_time = 87;
         s_yoffset_batt = 8;
         s_xoffset_batt = canvas_w / 2;
+
       }
+
       if (canvas_rect) {
+
         y_offset_nyan = 35;
         s_offset_time = 70;
         s_yoffset_batt = 8;
         s_xoffset_batt = canvas_w - 20;
+
       }
+
+      if (canvas_rect && hasOLED) {
+
+        sq_size = 5;
+        y_offset_nyan = 30;
+        s_offset_time = 80;
+        s_yoffset_batt = 14;
+        s_xoffset_batt = canvas_w /2;
+
+      }
+
       if (canvas_circ) {
 
         switch(canvas_w) {
+
+          case 416:
+            sq_size = 6;
+            y_offset_nyan = 65;
+            s_offset_time = 190;
+            s_offset_date = 80;
+            s_yoffset_batt = 25;
+            s_xoffset_batt = canvas_w /2;
+            hasOLED = true;
+          break;
+
+          case 390:
+            sq_size = 6;
+            y_offset_nyan = 60;
+            s_offset_time = 170;
+            s_offset_date = 80;
+            s_yoffset_batt = 20;
+            s_xoffset_batt = canvas_w /2;
+            hasOLED = true;
+          break;
+
+          case 360:
+            sq_size = 6;
+            y_offset_nyan = 55;
+            s_offset_time = 160;
+            s_offset_date = 80;
+            s_yoffset_batt = 20;
+            s_xoffset_batt = canvas_w /2;
+            hasOLED = true;
+          break;
 
           case 280:
             y_offset_nyan = 40;
@@ -347,12 +382,32 @@ class BasicView extends Ui.WatchFace {
         s_xoffset_batt = canvas_w /2;
       }
 
+      // pre-calc a few constants to improve performance with rendering in onPartialUpdate()
+      sq_size_49 = 49*sq_size;
+      sq_size_23 = 23*sq_size;
+      sq_size_21 = 21*sq_size;
+      sq_size_15 = 15*sq_size;
+      sq_size_14 = 14*sq_size;
+      sq_size_11 = 11*sq_size;
+      sq_size_7 = 7*sq_size;
+      sq_size_4 = 4*sq_size;
+      sq_size_3 = 3*sq_size;
+      dh_fifth = (canvas_h/5);
+      dh_two_fifths = (canvas_h*2/5);
+      actual_sprite_star_height = sprite_star_height*sq_size;
+      actual_sprite_star_width = sprite_star_width*sq_size;
+
+      // size of nyan on screen
+      pw = sq_size*sprite_height;
+      ph = sq_size*sprite_width;
+
+
       // load fonts
       f_nyan_font = Ui.loadResource(Rez.Fonts.nyan_font_digits);
       f_nyan_font_alpha = Ui.loadResource(Rez.Fonts.nyan_font_alpha);
 
       // load resources for larger resolution devices
-      if (sq_size > 3) {
+      if (sq_size == 4) {
 
         b_nyan_head = Ui.loadResource(Rez.Drawables.nyan_head_4);
         b_nyan_body = Ui.loadResource(Rez.Drawables.nyan_body_4);
@@ -541,40 +596,55 @@ class BasicView extends Ui.WatchFace {
         ani_step = 0;
       }
 
+      var offset_OLED = 0;
+
       // draw the nyan!
       // --------------------
-      drawNyan(dc,false);
 
+      if (!is_animating && hasOLED) {
+
+        // clear the screen
+        dc.setColor(0x000000, 0x000000);
+        dc.clear();
+
+        offset_OLED = minute.toNumber()%2 > 0 ? -(dc.getFontHeight(f_nyan_font)*1.7) : 0;
+
+      } else {
+
+        drawNyan(dc,false);
+
+      }
 
       // draw date/field
       // --------------------
       var this_field = getField(set_field);
 
       dc.setColor(Gfx.COLOR_BLACK, Gfx.COLOR_TRANSPARENT);
-      dc.drawText(dw/2 + 2, dh - (s_offset_time) + (s_offset_date) + 2, f_nyan_font_alpha, this_field, Gfx.TEXT_JUSTIFY_CENTER);
+      dc.drawText(dw/2 + 2, dh - (s_offset_time) + (s_offset_date) + 2 + offset_OLED, f_nyan_font_alpha, this_field, Gfx.TEXT_JUSTIFY_CENTER);
 
       dc.setColor(Gfx.COLOR_WHITE, Gfx.COLOR_TRANSPARENT);
-      dc.drawText(dw/2, dh - (s_offset_time) + (s_offset_date), f_nyan_font_alpha, this_field, Gfx.TEXT_JUSTIFY_CENTER);
+      dc.drawText(dw/2, dh - (s_offset_time) + (s_offset_date) + offset_OLED, f_nyan_font_alpha, this_field, Gfx.TEXT_JUSTIFY_CENTER);
 
 
       // draw time
       // --------------------
       dc.setColor(Gfx.COLOR_BLACK, Gfx.COLOR_TRANSPARENT);
-      dc.drawText(dw/2 + 3, dh - (s_offset_time) + 3, f_nyan_font, hour.toString() + ":" + minute.toString(), Gfx.TEXT_JUSTIFY_CENTER);
+      dc.drawText(dw/2 + 3, dh - (s_offset_time) + 3 + offset_OLED, f_nyan_font, hour.toString() + ":" + minute.toString(), Gfx.TEXT_JUSTIFY_CENTER);
 
       dc.setColor(Gfx.COLOR_WHITE, Gfx.COLOR_TRANSPARENT);
-      dc.drawText(dw/2, dh - (s_offset_time), f_nyan_font, hour.toString() + ":" + minute.toString(), Gfx.TEXT_JUSTIFY_CENTER);
+      dc.drawText(dw/2, dh - (s_offset_time) + offset_OLED, f_nyan_font, hour.toString() + ":" + minute.toString(), Gfx.TEXT_JUSTIFY_CENTER);
 
 
       // draw battery (if battery is low) "@" glyph
       // --------------------
       if (battery < 21) {
         dc.setColor(Gfx.COLOR_BLACK, Gfx.COLOR_TRANSPARENT);
-        dc.drawText(s_xoffset_batt + 2, s_yoffset_batt + 2, f_nyan_font_alpha, "@", Gfx.TEXT_JUSTIFY_CENTER);
+        dc.drawText(s_xoffset_batt + 2, s_yoffset_batt + 2 + offset_OLED, f_nyan_font_alpha, "@", Gfx.TEXT_JUSTIFY_CENTER);
 
         dc.setColor(Gfx.COLOR_WHITE, Gfx.COLOR_TRANSPARENT);
-        dc.drawText(s_xoffset_batt, s_yoffset_batt, f_nyan_font_alpha, "@", Gfx.TEXT_JUSTIFY_CENTER);
+        dc.drawText(s_xoffset_batt, s_yoffset_batt + offset_OLED, f_nyan_font_alpha, "@", Gfx.TEXT_JUSTIFY_CENTER);
       }
+
 
 
     }
@@ -690,6 +760,18 @@ class BasicView extends Ui.WatchFace {
       // almost done, increase animation counter!
       ani_step++;
 
+      if (is_animating) {
+
+        if (timer1) {
+          timer1.stop();
+        }
+
+        timer1 = new Timer.Timer();
+        timer1.start(method(:callback_animate), timer_steps, false );
+
+      }
+
+
     }
 
 
@@ -705,17 +787,20 @@ class BasicView extends Ui.WatchFace {
       // redraw the screen
       Ui.requestUpdate();
 
-      // timer not greater than 500ms? then let's start the timer again
-      if (timer_steps < 500) {
-        timer1 = new Timer.Timer();
-        timer1.start(method(:callback_animate), timer_steps, false );
-      } else {
-        // timer exists? stop it
-        if (timer1) {
-          timer1.stop();
-        }
-      }
-
+      // if (is_animating) {
+      //
+      //     // timer not greater than 500ms? then let's start the timer again
+      //     if (timer_steps < 500) {
+      //       timer1 = new Timer.Timer();
+      //       timer1.start(method(:callback_animate), timer_steps, false );
+      //     } else {
+      //       // timer exists? stop it
+      //       if (timer1) {
+      //         timer1.stop();
+      //       }
+      //     }
+      //
+      // }
 
     }
 

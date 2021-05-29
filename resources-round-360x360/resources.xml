@@ -1,0 +1,139 @@
+<resources>
+
+  <fonts>
+  <font id="nyan_font_digits" filename="../resources/fonts/nyan-100/nyan-100.fnt"/>
+  <font id="nyan_font_alpha" filename="../resources/fonts/nyan-50alpha/nyan-50alpha.fnt"/>
+  </fonts>
+
+    <bitmaps>
+
+      <bitmap id="nyan_head" filename="../resources/bitmaps/nyan-split/head-6.png" dithering="none">
+      <palette>
+          <color>FFFFFF</color>
+          <color>AAAAAA</color>
+          <color>555555</color>
+          <color>000000</color>
+          <color>FF0000</color>
+          <color>AA0000</color>
+          <color>FF5500</color>
+          <color>FF00FF</color>
+          <color>FFAA00</color>
+          <color>5500AA</color>
+          <color>00FF00</color>
+          <color>00AA00</color>
+          <color>00AAFF</color>
+          <color>0000FF</color>
+      </palette>
+      </bitmap>
+
+      <bitmap id="nyan_body" filename="../resources/bitmaps/nyan-split/body-6.png" dithering="none">
+      <palette>
+          <color>FFFFFF</color>
+          <color>AAAAAA</color>
+          <color>555555</color>
+          <color>000000</color>
+          <color>FF0000</color>
+          <color>AA0000</color>
+          <color>FF5500</color>
+          <color>FF00FF</color>
+          <color>FFAA00</color>
+          <color>5500AA</color>
+          <color>00FF00</color>
+          <color>00AA00</color>
+          <color>00AAFF</color>
+          <color>0000FF</color>
+      </palette>
+    </bitmap>
+      <bitmap id="nyan_legs" filename="../resources/bitmaps/nyan-split/legs-6.png" dithering="none">
+        <palette>
+            <color>FFFFFF</color>
+            <color>AAAAAA</color>
+            <color>555555</color>
+            <color>000000</color>
+            <color>FF0000</color>
+            <color>AA0000</color>
+            <color>FF5500</color>
+            <color>FF00FF</color>
+            <color>FFAA00</color>
+            <color>5500AA</color>
+            <color>00FF00</color>
+            <color>00AA00</color>
+            <color>00AAFF</color>
+            <color>0000FF</color>
+        </palette>
+      </bitmap>
+
+      <bitmap id="nyan_tail_1" filename="../resources/bitmaps/nyan-split/tail-6-1.png" dithering="none">
+        <palette>
+            <color>AAAAAA</color>
+            <color>000000</color>
+        </palette>
+      </bitmap>
+      <bitmap id="nyan_tail_2" filename="../resources/bitmaps/nyan-split/tail-6-2.png" dithering="none">
+        <palette>
+            <color>AAAAAA</color>
+            <color>000000</color>
+        </palette>
+      </bitmap>
+      <bitmap id="nyan_tail_3" filename="../resources/bitmaps/nyan-split/tail-6-3.png" dithering="none">
+        <palette>
+            <color>AAAAAA</color>
+            <color>000000</color>
+        </palette>
+      </bitmap>
+      <bitmap id="nyan_tail_4" filename="../resources/bitmaps/nyan-split/tail-6-4.png" dithering="none">
+        <palette>
+            <color>AAAAAA</color>
+            <color>000000</color>
+        </palette>
+      </bitmap>
+      <bitmap id="nyan_tail_5" filename="../resources/bitmaps/nyan-split/tail-6-5.png" dithering="none">
+        <palette>
+            <color>AAAAAA</color>
+            <color>000000</color>
+        </palette>
+      </bitmap>
+      <bitmap id="nyan_tail_6" filename="../resources/bitmaps/nyan-split/tail-6-6.png" dithering="none">
+        <palette>
+            <color>AAAAAA</color>
+            <color>000000</color>
+        </palette>
+      </bitmap>
+
+      <bitmap id="star_1" filename="../resources/bitmaps/nyan-split/star-6-1.png" dithering="none">
+        <palette>
+            <color>FFFFFF</color>
+        </palette>
+      </bitmap>
+      <bitmap id="star_2" filename="../resources/bitmaps/nyan-split/star-6-2.png" dithering="none">
+        <palette>
+            <color>FFFFFF</color>
+        </palette>
+      </bitmap>
+      <bitmap id="star_3" filename="../resources/bitmaps/nyan-split/star-6-3.png" dithering="none">
+        <palette>
+            <color>FFFFFF</color>
+        </palette>
+      </bitmap>
+      <bitmap id="star_4" filename="../resources/bitmaps/nyan-split/star-6-4.png" dithering="none">
+        <palette>
+            <color>FFFFFF</color>
+        </palette>
+      </bitmap>
+      <bitmap id="star_5" filename="../resources/bitmaps/nyan-split/star-6-5.png" dithering="none">
+        <palette>
+            <color>FFFFFF</color>
+        </palette>
+      </bitmap>
+      <bitmap id="star_6" filename="../resources/bitmaps/nyan-split/star-6-6.png" dithering="none">
+        <palette>
+            <color>FFFFFF</color>
+        </palette>
+      </bitmap>
+
+      <bitmap id="rainbow" filename="../resources/bitmaps/nyan-split/rainbow-6.png" dithering="none"/>
+      <bitmap id="rainbow_bt" filename="../resources/bitmaps/nyan-split/rainbow-bt-6.png" dithering="none"/>
+
+    </bitmaps>
+
+</resources>
